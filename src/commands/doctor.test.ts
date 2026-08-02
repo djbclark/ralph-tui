@@ -66,6 +66,7 @@ mock.module('../plugins/agents/registry.js', () => ({
     },
     hasPlugin: (name: string) => name === 'claude' || name === 'opencode',
     registerBuiltin: () => {},
+    initialize: () => Promise.resolve([]),
     getRegisteredPlugins: () => [
       { id: 'claude', name: 'Claude Code', description: 'Claude AI', version: '1.0.0' },
       { id: 'opencode', name: 'OpenCode', description: 'OpenCode AI', version: '1.0.0' },
