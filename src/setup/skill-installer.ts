@@ -24,6 +24,7 @@ export const AGENT_ID_MAP: Record<string, string> = {
   'github-copilot': 'github-copilot',
   pi: 'pi',
   grok: 'grok',
+  antigravity: 'antigravity',
 };
 
 /**
