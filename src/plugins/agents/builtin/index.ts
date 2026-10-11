@@ -16,6 +16,7 @@ import createKimiAgent from './kimi.js';
 import createPiAgent from './pi.js';
 import createGrokAgent from './grok.js';
 import createAntigravityAgent from './antigravity.js';
+import createAcpAgent from './acp.js';
 
 /**
  * Register all built-in agent plugins with the registry.
@@ -37,6 +38,7 @@ export function registerBuiltinAgents(): void {
   registry.registerBuiltin(createPiAgent);
   registry.registerBuiltin(createGrokAgent);
   registry.registerBuiltin(createAntigravityAgent);
+  registry.registerBuiltin(createAcpAgent);
 }
 
 // Export the factory functions for direct use
@@ -53,6 +55,7 @@ export {
   createPiAgent,
   createGrokAgent,
   createAntigravityAgent,
+  createAcpAgent,
 };
 
 // Export Claude JSONL parsing types and utilities
@@ -69,3 +72,4 @@ export { KimiAgentPlugin } from './kimi.js';
 export { PiAgentPlugin, parsePiJsonLine } from './pi.js';
 export { GrokAgentPlugin, parseGrokJsonLine, parseGrokOutputToEvents } from './grok.js';
 export { AntigravityAgentPlugin, parseAntigravityJsonLine, parseAntigravityOutputToEvents } from './antigravity.js';
+export { AcpAgentPlugin } from './acp.js';

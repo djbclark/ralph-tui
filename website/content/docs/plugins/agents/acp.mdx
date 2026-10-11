@@ -1,0 +1,108 @@
+---
+title: ACP Agent
+description: Run any installed acp-run agent through one built-in Ralph TUI plugin.
+---
+
+## ACP Agent
+
+The built-in `acp` plugin runs coding tasks through `acp-run`, an Agent Client
+Protocol client. Choose an installed agent such as codex, claude, copilot,
+opencode, cursor, agy, grok, zcode, or cline without a separate Ralph plugin.
+Prompts travel over stdin, and `-C` selects the task's working directory.
+
+## Prerequisites
+
+Install `acp-run` and the underlying agent's ACP adapter, authenticate that agent,
+and ensure the executables are on `PATH`. Inspect the available agents and models:
+
+```bash
+acp-run --list
+acp-run codex --info
+```
+
+An `ok` row in `--list` means the adapter executable is installed. Detection checks
+this list; it does not send a prompt or verify authentication. `--info` starts the
+adapter to query its models and modes. Model availability depends on the provider
+and account; the plugin does not maintain a fixed model list.
+
+## Configuration
+
+```toml
+[[agents]]
+name = "acp-codex"
+plugin = "acp"
+default = true
+model = "gpt-6-astra"
+command = "acp-run"
+
+[agents.options]
+agent = "codex"
+model = "gpt-6-astra"
+perm = "all"
+```
+
+The `model` entry under `[agents.options]` is required on this Ralph version:
+per-agent top-level `model` is not forwarded by its configuration/registry layer.
+The example repeats it there so it works with that limitation. Leave model unset
+for `zcode`, whose server does not support model selection.
+
+### Antigravity (agy)
+
+```toml
+[[agents]]
+name = "acp-agy"
+plugin = "acp"
+
+[agents.options]
+agent = "agy"
+model = "gemini-3.1-pro-high"
+perm = "all"
+```
+
+Select a model advertised by `acp-run agy --info`; the model above is an example.
+Always reach agy through `acp-run`, including this plugin. Never use `agy -p`.
+
+### Options
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `agent` | Required | Agent name from `acp-run --list` |
+| `model` | Required except for zcode | Provider model ID; omit for zcode |
+| `mode` | Unset | ACP session mode |
+| `perm` | `"all"` | `all`, `deny`, or `scoped:<paths>` |
+| `set` | `[]` | Repeated ACP settings, e.g. `["reasoning=high", "provider=example"]` |
+| `timeout` | acp-run default (1800 seconds) | Positive seconds passed to `acp-run --timeout`; see limitation below |
+| Top-level `command` | `"acp-run"` | Override the executable path |
+
+`perm = "all"` approves every permission request. `deny` refuses requests.
+`scoped:src,docs` allows reads and commands, and restricts edit/delete/move requests
+to those paths relative to the task directory; it is not a command sandbox.
+
+The registry overwrites `options.timeout` with the top-level timeout before the
+plugin receives it. For this plugin, a top-level `timeout = 600` (before
+`[agents.options]`) therefore sets **600 seconds**, unlike other plugins' usual
+millisecond setting. Setting only `options.timeout` has no effect in this version.
+The execution API's `AgentExecuteOptions.timeout` still uses milliseconds and can
+limit a task independently, including preflight checks.
+
+## Output and failures
+
+Non-interactive `acp-run` buffers its final response. Even `--json` emits one final
+JSON object, not a stream of events. This plugin uses plain output and advertises
+neither streaming nor subagent tracing. Output appears when the task completes.
+
+Exit 0 completes the task; 124 marks a timeout. Other nonzero codes, including
+1 (provider/error) and 5 (empty reply or all permissions denied), fail the task.
+Errors include the `acp-run: FAILED ...` diagnostic when present, otherwise its
+stderr summary. Interrupts remain interrupts.
+
+## Built-in and custom plugins
+
+`acp` is registered with Ralph's bundled agent factories, so `plugin = "acp"`
+requires no file in your personal plugins directory. Custom agent plugins are
+loaded from `~/.config/ralph-tui/plugins/agents/` as `.ts` or `.js` modules with
+a default-exported factory function. This implementation belongs in the built-in
+registry and should not also be installed as a user plugin.
+
+Skills belong to the underlying agent. There is no single ACP skill directory or
+add-skill agent ID; install skills for the chosen agent separately.
