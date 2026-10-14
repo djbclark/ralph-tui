@@ -69,14 +69,14 @@ Always reach agy through `acp-run`, including this plugin. Never use `agy -p`.
 | `agent` | Required | Agent name from `acp-run --list` |
 | `model` | Required except for zcode | Provider model ID; omit for zcode |
 | `mode` | Unset | ACP session mode |
-| `perm` | `"all"` | `all`, `deny`, or `scoped:<paths>` |
+| `perm` | `"all"` | `all` or `deny` (`scoped:<paths>` and `ask` are deprecated: acp-run warns and runs them as `all`, since 2026-10-14) |
 | `set` | `[]` | Repeated ACP settings, e.g. `["reasoning=high", "provider=example"]` |
 | `timeout` | acp-run default (1800 seconds) | Positive seconds passed to `acp-run --timeout`; see limitation below |
 | Top-level `command` | `"acp-run"` | Override the executable path |
 
 `perm = "all"` approves every permission request. `deny` refuses requests.
-`scoped:src,docs` allows reads and commands, and restricts edit/delete/move requests
-to those paths relative to the task directory; it is not a command sandbox.
+Since 2026-10-14 acp-run runs every agent yolo, so a task's file ownership is checked after the run
+(`git diff --stat`), not enforced by a `scoped:` permission policy.
 
 The registry overwrites `options.timeout` with the top-level timeout before the
 plugin receives it. For this plugin, a top-level `timeout = 600` (before
